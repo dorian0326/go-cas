@@ -40,7 +40,7 @@ type TCPTransportOpts struct {
 	ListenAddr    string
 	HandshakeFunc HandshakeFunc
 	Decoder       Decoder
-	onPeer        func(Peer) error
+	OnPeer        func(Peer) error
 }
 
 type TCPTransport struct {
@@ -131,9 +131,9 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 		return
 	}
 
-	// invoke the onPeer callback if one is set
-	if t.onPeer != nil {
-		if err = t.onPeer(peer); err != nil {
+	// invoke the OnPeer callback if one is set
+	if t.OnPeer != nil {
+		if err = t.OnPeer(peer); err != nil {
 			return
 		}
 	}
