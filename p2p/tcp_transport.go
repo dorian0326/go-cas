@@ -28,7 +28,7 @@ func newTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 }
 
 func (p *TCPPeer) CloseStream() {
-	p.wg.Wait()
+	p.wg.Done()
 }
 
 func (p *TCPPeer) Send(b []byte) error {
@@ -71,7 +71,10 @@ func (t *TCPTransport) Consume() <-chan RPC {
 // Close implements the Transport interface,
 // which will close the transport and stop accepting new connections.
 func (t *TCPTransport) Close() error {
-	return t.listener.Close()
+	if t.listener != nil {
+		return t.listener.Close()
+	}
+	return nil
 }
 
 // Dial implements the Transport interface,
@@ -111,6 +114,7 @@ func (t *TCPTransport) startAcceptLoop() {
 
 		if err != nil {
 			fmt.Printf("TCP accept error: %s\n", err)
+			continue
 		}
 
 		go t.handleConn(conn, false)
@@ -141,7 +145,7 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 	// read loop
 	for {
 		rpc := RPC{}
-		err := t.Decoder.Decode(conn, &rpc)
+		err = t.Decoder.Decode(conn, &rpc)
 		if err != nil {
 			return
 		}
